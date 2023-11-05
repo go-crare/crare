@@ -14,7 +14,7 @@ This is a fork of https://github.com/tucnak/telebot . This library requires mini
 
 
 [![GoDoc](https://godoc.org/gopkg.in/crare?status.svg)](https://godoc.org/gopkg.in/crare)
-[![GitHub Actions](https://github.com/go-crare/crare/actions/workflows/codeql.yml/badge.svg)](https://github.com/go-crare/crare/actions)
+[![GitHub Actions](https://github.com/go-crare/crare/actions/workflows/lint.yml/badge.svg)](https://github.com/go-crare/crare/actions)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgo-crare%2Fcrare.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgo-crare%2Fcrare?ref=badge_shield)
 [![Go Report Card](https://goreportcard.com/badge/gopkg.in/crare)](https://goreportcard.com/report/gopkg.in/crare)
 
