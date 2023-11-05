@@ -1,0 +1,583 @@
+package layout
+
+import (
+	"bytes"
+	"log"
+	"os"
+	"strings"
+	"sync"
+	"text/template"
+
+	"github.com/3JoB/ulib/pool"
+	"github.com/3JoB/unsafeConvert"
+	"github.com/goccy/go-yaml"
+	"github.com/sugawarayuuta/sonnet"
+
+	"gopkg.in/crare"
+)
+
+type (
+	// Layout provides an interface to interact with the layout,
+	// parsed from the config file and locales.
+	Layout struct {
+		pref  *crare.Settings
+		mu    sync.RWMutex // protects ctxs
+		ctxs  map[*crare.Context]string
+		funcs template.FuncMap
+
+		commands map[string]string
+		buttons  map[string]Button
+		markups  map[string]Markup
+		results  map[string]Result
+		locales  map[string]*template.Template
+
+		Config
+	}
+
+	// Button is a shortcut for crare.Btn.
+	Button struct {
+		crare.Btn `yaml:",inline"`
+		Data      any  `yaml:"data"`
+		IsReply   bool `yaml:"reply"`
+	}
+
+	// Markup represents layout-specific markup to be parsed.
+	Markup struct {
+		inline          *bool
+		keyboard        *template.Template
+		ResizeKeyboard  *bool `yaml:"resize_keyboard,omitempty"` // nil == true
+		ForceReply      bool  `yaml:"force_reply,omitempty"`
+		OneTimeKeyboard bool  `yaml:"one_time_keyboard,omitempty"`
+		RemoveKeyboard  bool  `yaml:"remove_keyboard,omitempty"`
+		Selective       bool  `yaml:"selective,omitempty"`
+	}
+
+	// Result represents layout-specific result to be parsed.
+	Result struct {
+		result           *template.Template
+		crare.ResultBase `yaml:",inline"`
+		Content          ResultContent `yaml:"content"`
+		Markup           string        `yaml:"markup"`
+	}
+
+	// ResultBase represents layout-specific result's base to be parsed.
+	ResultBase struct {
+		crare.ResultBase `yaml:",inline"`
+		Content          ResultContent `yaml:"content"`
+	}
+
+	// ResultContent represents any kind of InputMessageContent and implements it.
+	ResultContent map[string]any
+)
+
+// New parses the given layout file.
+func New(path string, funcs ...template.FuncMap) (*Layout, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	lt := Layout{
+		ctxs:  make(map[*crare.Context]string),
+		funcs: make(template.FuncMap),
+	}
+
+	for k, v := range builtinFuncs {
+		lt.funcs[k] = v
+	}
+	for i := range funcs {
+		for k, v := range funcs[i] {
+			lt.funcs[k] = v
+		}
+	}
+
+	return &lt, yaml.Unmarshal(data, &lt)
+}
+
+// NewDefault parses the given layout file without localization features.
+// See Layout.Default for more details.
+func NewDefault(path, locale string, funcs ...template.FuncMap) (*DefaultLayout, error) {
+	lt, err := New(path, funcs...)
+	if err != nil {
+		return nil, err
+	}
+	return lt.Default(locale), nil
+}
+
+var builtinFuncs = template.FuncMap{
+	// Built-in blank and helper functions.
+	"locale": func() string { return "" },
+	"config": func(string) string { return "" },
+	"text":   func(string, ...any) string { return "" },
+}
+
+// Settings returns built crare Settings required for bot initializing.
+//
+//	settings:
+//		url: (custom url if needed)
+//		token: (not recommended)
+//		updates: (chan capacity)
+//		locales_dir: (optional)
+//		token_env: (token env var name, example: TOKEN)
+//		parse_mode: (default parse mode)
+//		long_poller: (long poller settings)
+//		webhook: (or webhook settings)
+//
+// Usage:
+//
+//	lt, err := layout.New("bot.yml")
+//	b, err := crare.NewBot(lt.Settings())
+//	// That's all!
+func (lt *Layout) Settings() crare.Settings {
+	if lt.pref == nil {
+		panic("crare/layout: settings is empty")
+	}
+	return *lt.pref
+}
+
+// Default returns a simplified layout instance with the pre-defined locale.
+// It's useful when you have no need for localization and don't want to pass
+// context each time you use layout functions.
+func (lt *Layout) Default(locale string) *DefaultLayout {
+	return &DefaultLayout{
+		locale: locale,
+		lt:     lt,
+		Config: lt.Config,
+	}
+}
+
+// Locales returns all presented locales.
+func (lt *Layout) Locales() []string {
+	var keys []string
+	for k := range lt.locales {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// Locale returns the context locale.
+func (lt *Layout) Locale(c *crare.Context) (string, bool) {
+	lt.mu.RLock()
+	defer lt.mu.RUnlock()
+	locale, ok := lt.ctxs[c]
+	return locale, ok
+}
+
+// SetLocale allows you to change a locale for the passed context.
+func (lt *Layout) SetLocale(c *crare.Context, locale string) {
+	lt.mu.Lock()
+	lt.ctxs[c] = locale
+	lt.mu.Unlock()
+}
+
+// Commands returns a list of crare commands, which can be
+// used in b.SetCommands later.
+func (lt *Layout) Commands() (cmds []crare.Command) {
+	for k, v := range lt.commands {
+		cmds = append(cmds, crare.Command{
+			Text:        strings.TrimLeft(k, "/"),
+			Description: v,
+		})
+	}
+	return
+}
+
+// CommandsLocale returns a list of crare commands and localized description, which can be
+// used in b.SetCommands later.
+//
+// Example of bot.yml:
+//
+//	commands:
+//	  /start: '{{ text "cmdStart" }}'
+//
+// en.yml:
+//
+//	cmdStart: Start the bot
+//
+// ru.yml:
+//
+//	cmdStart: Запуск бота
+//
+// Usage:
+//
+//	b.SetCommands(lt.CommandsLocale("en"), "en")
+//	b.SetCommands(lt.CommandsLocale("ru"), "ru")
+func (lt *Layout) CommandsLocale(locale string, args ...any) (cmds []crare.Command) {
+	var arg any
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	for k, v := range lt.commands {
+		tmpl, err := lt.template(template.New(k).Funcs(lt.funcs), locale).Parse(v)
+		if err != nil {
+			log.Println("crare/layout:", err)
+			return nil
+		}
+
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, arg); err != nil {
+			log.Println("crare/layout:", err)
+			return nil
+		}
+
+		cmds = append(cmds, crare.Command{
+			Text:        strings.TrimLeft(k, "/"),
+			Description: buf.String(),
+		})
+	}
+	return
+}
+
+// Text returns a text, which locale is dependent on the context.
+// The given optional argument will be passed to the template engine.
+//
+// Example of en.yml:
+//
+//	start: Hi, {{.FirstName}}!
+//
+// Usage:
+//
+//	func onStart(c crare.Context) error {
+//		return c.Send(lt.Text(c, "start", c.Sender()))
+//	}
+func (lt *Layout) Text(c *crare.Context, k string, args ...any) string {
+	locale, ok := lt.Locale(c)
+	if !ok {
+		return ""
+	}
+
+	return lt.TextLocale(locale, k, args...)
+}
+
+// TextLocale returns a localized text processed with text/template engine.
+// See Text for more details.
+func (lt *Layout) TextLocale(locale, k string, args ...any) string {
+	tmpl, ok := lt.locales[locale]
+	if !ok {
+		return ""
+	}
+
+	var arg any
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	var buf bytes.Buffer
+	if err := lt.template(tmpl, locale).ExecuteTemplate(&buf, k, arg); err != nil {
+		log.Println("crare/layout:", err)
+	}
+
+	return buf.String()
+}
+
+// Callback returns a callback endpoint used to handle buttons.
+//
+// Example:
+//
+//	// Handling settings button
+//	b.Handle(lt.Callback("settings"), onSettings)
+func (lt *Layout) Callback(k string) crare.CallbackEndpoint {
+	btn, ok := lt.buttons[k]
+	if !ok {
+		return nil
+	}
+	return &btn
+}
+
+// Button returns a button, which locale is dependent on the context.
+// The given optional argument will be passed to the template engine.
+//
+//	buttons:
+//		item:
+//			unique: item
+//			callback_data: {{.ID}}
+//			text: Item #{{.Number}}
+//
+// Usage:
+//
+//	btns := make([]crare.Btn, len(items))
+//	for i, item := range items {
+//		btns[i] = lt.Button(c, "item", struct {
+//			Number int
+//			Item   Item
+//		}{
+//			Number: i,
+//			Item:   item,
+//		})
+//	}
+//
+//	m := b.NewMarkup()
+//	m.Inline(m.Row(btns...))
+//	// Your generated markup is ready.
+func (lt *Layout) Button(c *crare.Context, k string, args ...any) *crare.Btn {
+	locale, ok := lt.Locale(c)
+	if !ok {
+		return nil
+	}
+
+	return lt.ButtonLocale(locale, k, args...)
+}
+
+// ButtonLocale returns a localized button processed with text/template engine.
+// See Button for more details.
+func (lt *Layout) ButtonLocale(locale, k string, args ...any) *crare.Btn {
+	btn, ok := lt.buttons[k]
+	if !ok {
+		return nil
+	}
+
+	var arg any
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	data, err := yaml.Marshal(btn)
+	if err != nil {
+		log.Println("crare/layout:", err)
+		return nil
+	}
+
+	tmpl, err := lt.template(template.New(k).Funcs(lt.funcs), locale).Parse(unsafeConvert.StringSlice(data))
+	if err != nil {
+		log.Println("crare/layout:", err)
+		return nil
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, arg); err != nil {
+		log.Println("crare/layout:", err)
+		return nil
+	}
+
+	if err := yaml.Unmarshal(buf.Bytes(), &btn); err != nil {
+		log.Println("crare/layout:", err)
+		return nil
+	}
+
+	return &btn.Btn
+}
+
+// Markup returns a markup, which locale is dependent on the context.
+// The given optional argument will be passed to the template engine.
+//
+//	buttons:
+//		settings: 'Settings'
+//	markups:
+//		menu:
+//		- [settings]
+//
+// Usage:
+//
+//	func onStart(c crare.Context) error {
+//		return c.Send(
+//			lt.Text(c, "start"),
+//			lt.Markup(c, "menu"),
+//		)
+//	}
+func (lt *Layout) Markup(c *crare.Context, k string, args ...any) *crare.ReplyMarkup {
+	locale, ok := lt.Locale(c)
+	if !ok {
+		return nil
+	}
+
+	return lt.MarkupLocale(locale, k, args...)
+}
+
+// MarkupLocale returns a localized markup processed with text/template engine.
+// See Markup for more details.
+func (lt *Layout) MarkupLocale(locale, k string, args ...any) *crare.ReplyMarkup {
+	markup, ok := lt.markups[k]
+	if !ok {
+		return nil
+	}
+
+	var arg any
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	var buf bytes.Buffer
+	if err := lt.template(markup.keyboard, locale).Execute(&buf, arg); err != nil {
+		log.Println("crare/layout:", err)
+	}
+
+	r := &crare.ReplyMarkup{}
+	if *markup.inline {
+		if err := yaml.Unmarshal(buf.Bytes(), &r.InlineKeyboard); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	} else {
+		r.ResizeKeyboard = markup.ResizeKeyboard == nil || *markup.ResizeKeyboard
+		r.ForceReply = markup.ForceReply
+		r.OneTimeKeyboard = markup.OneTimeKeyboard
+		r.RemoveKeyboard = markup.RemoveKeyboard
+		r.Selective = markup.Selective
+
+		if err := yaml.Unmarshal(buf.Bytes(), &r.ReplyKeyboard); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	}
+
+	return r
+}
+
+// Result returns an inline result, which locale is dependent on the context.
+// The given optional argument will be passed to the template engine.
+//
+//	results:
+//		article:
+//			type: article
+//			id: '{{ .ID }}'
+//			title: '{{ .Title }}'
+//			description: '{{ .Description }}'
+//			message_text: '{{ .Content }}'
+//			thumb_url: '{{ .PreviewURL }}'
+//
+// Usage:
+//
+//	func onQuery(c crare.Context) error {
+//		results := make(crare.Results, len(articles))
+//		for i, article := range articles {
+//			results[i] = lt.Result(c, "article", article)
+//		}
+//		return c.Answer(&crare.QueryResponse{
+//			Results:   results,
+//			CacheTime: 100,
+//		})
+//	}
+func (lt *Layout) Result(c *crare.Context, k string, args ...any) crare.Result {
+	locale, ok := lt.Locale(c)
+	if !ok {
+		return nil
+	}
+
+	return lt.ResultLocale(locale, k, args...)
+}
+
+// ResultLocale returns a localized result processed with text/template engine.
+// See Result for more details.
+func (lt *Layout) ResultLocale(locale, k string, args ...any) crare.Result {
+	result, ok := lt.results[k]
+	if !ok {
+		return nil
+	}
+
+	var arg any
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	buf := pool.NewBuffer()
+	defer pool.ReleaseBuffer(buf)
+	if err := lt.template(result.result, locale).Execute(buf, arg); err != nil {
+		log.Println("crare/layout:", err)
+	}
+
+	var (
+		data = buf.Bytes()
+		base Result
+		r    crare.Result
+	)
+
+	if err := yaml.Unmarshal(data, &base); err != nil {
+		log.Println("crare/layout:", err)
+	}
+
+	switch base.Type {
+	case "article":
+		r = &crare.ArticleResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "audio":
+		r = &crare.AudioResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "contact":
+		r = &crare.ContactResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "document":
+		r = &crare.DocumentResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "gif":
+		r = &crare.GifResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "location":
+		r = &crare.LocationResult{ResultBase: base.ResultBase}
+		if err := sonnet.Unmarshal(data, &r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "mpeg4_gif":
+		r = &crare.Mpeg4GifResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "photo":
+		r = &crare.PhotoResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "venue":
+		r = &crare.VenueResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "video":
+		r = &crare.VideoResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "voice":
+		r = &crare.VoiceResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	case "sticker":
+		r = &crare.StickerResult{ResultBase: base.ResultBase}
+		if err := yaml.Unmarshal(data, r); err != nil {
+			log.Println("crare/layout:", err)
+		}
+	default:
+		log.Println("crare/layout: unsupported inline result type")
+		return nil
+	}
+
+	if base.Content != nil {
+		r.SetContent(base.Content)
+	}
+
+	if result.Markup != "" {
+		markup := lt.MarkupLocale(locale, result.Markup, args...)
+		if markup == nil {
+			log.Printf("crare/layout: markup with name %s was not found\n", result.Markup)
+		} else {
+			r.SetReplyMarkup(markup)
+		}
+	}
+
+	return r
+}
+
+func (lt *Layout) template(tmpl *template.Template, locale string) *template.Template {
+	funcs := make(template.FuncMap)
+
+	// Redefining built-in blank functions
+	funcs["config"] = lt.String
+	funcs["text"] = func(k string, args ...any) string { return lt.TextLocale(locale, k, args...) }
+	funcs["locale"] = func() string { return locale }
+
+	return tmpl.Funcs(funcs)
+}
+
+// IsInputMessageContent implements crare.InputMessageContent.
+func (ResultContent) IsInputMessageContent() bool {
+	return true
+}
