@@ -9,7 +9,7 @@ import (
 
 	"gopkg.in/crare/pkg/json"
 )
- 
+
 type NetFrame interface {
 	// Set up Json handler
 	SetJsonHandle(v json.Json)

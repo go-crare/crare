@@ -7,7 +7,7 @@
 //	import (
 //		"time"
 //		tele "gopkg.in/crare"
-// 		crare_net "gopkg.in/crare/pkg/net"
+//		crare_net "gopkg.in/crare/pkg/net"
 //	)
 //
 //	func main() {
