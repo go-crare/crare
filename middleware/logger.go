@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/3JoB/unsafeConvert"
 
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 // Logger returns a middleware that logs incoming updates.

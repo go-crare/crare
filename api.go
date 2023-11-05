@@ -14,7 +14,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"gopkg.in/crare/pkg/updates"
+	"gopkg.in/crare.v1/pkg/updates"
 )
 
 // Raw lets you call any method of Bot API manually.

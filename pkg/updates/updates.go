@@ -3,7 +3,7 @@ package updates
 import (
 	"sync"
 
-	"gopkg.in/crare/pkg/params"
+	"gopkg.in/crare.v1/pkg/params"
 )
 
 var paramsPool = sync.Pool{

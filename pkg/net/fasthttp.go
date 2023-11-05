@@ -6,7 +6,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 
-	"gopkg.in/crare/pkg/json"
+	"gopkg.in/crare.v1/pkg/json"
 )
 
 type FastHTTP struct {

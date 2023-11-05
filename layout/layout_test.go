@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 func TestLayout(t *testing.T) {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"gopkg.in/crare/pkg/json"
-	"gopkg.in/crare/pkg/version"
+	"gopkg.in/crare.v1/pkg/json"
+	"gopkg.in/crare.v1/pkg/version"
 )
 
 type FastHTTPRequest struct {

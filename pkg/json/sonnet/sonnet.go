@@ -6,7 +6,7 @@ import (
 
 	"github.com/sugawarayuuta/sonnet"
 
-	"gopkg.in/crare/pkg/json"
+	"gopkg.in/crare.v1/pkg/json"
 )
 
 type Sonnet struct{}

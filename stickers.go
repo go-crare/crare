@@ -3,7 +3,7 @@ package crare
 import (
 	"github.com/3JoB/unsafeConvert"
 
-	"gopkg.in/crare/pkg/params"
+	"gopkg.in/crare.v1/pkg/params"
 )
 
 type StickerSetType = string

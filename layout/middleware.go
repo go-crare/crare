@@ -1,7 +1,7 @@
 package layout
 
 import (
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 // LocaleFunc is the function used to fetch the locale of the recipient.

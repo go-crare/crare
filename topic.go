@@ -1,6 +1,6 @@
 package crare
 
-import "gopkg.in/crare/pkg/params"
+import "gopkg.in/crare.v1/pkg/params"
 
 type Topic struct {
 	Name              string `json:"name"`

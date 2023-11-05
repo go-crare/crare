@@ -1,6 +1,6 @@
 package middleware
 
-import "gopkg.in/crare"
+import "gopkg.in/crare.v1"
 
 // RestrictConfig defines config for Restrict middleware.
 type RestrictConfig struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/spf13/viper"
 
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 type Settings struct {

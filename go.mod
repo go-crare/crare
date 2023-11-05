@@ -1,4 +1,4 @@
-module gopkg.in/crare
+module gopkg.in/crare.v1
 
 go 1.21.3
 

@@ -13,7 +13,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/sugawarayuuta/sonnet"
 
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 type (

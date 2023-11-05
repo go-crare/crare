@@ -1,7 +1,7 @@
 package layout
 
 import (
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 // DefaultLayout is a simplified layout instance with pre-defined locale by default.

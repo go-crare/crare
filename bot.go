@@ -13,9 +13,9 @@ import (
 	"github.com/3JoB/ulib/pool"
 	"github.com/3JoB/unsafeConvert"
 
-	"gopkg.in/crare/pkg/json"
-	"gopkg.in/crare/pkg/json/sonnet"
-	"gopkg.in/crare/pkg/net"
+	"gopkg.in/crare.v1/pkg/json"
+	"gopkg.in/crare.v1/pkg/json/sonnet"
+	"gopkg.in/crare.v1/pkg/net"
 )
 
 var (

@@ -3,7 +3,7 @@ package middleware
 import (
 	"errors"
 
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 // AutoRespond returns a middleware that automatically responds

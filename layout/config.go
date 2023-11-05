@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"gopkg.in/crare"
+	"gopkg.in/crare.v1"
 )
 
 // Config represents typed map interface related to the "config" section in layout.

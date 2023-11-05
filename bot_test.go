@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gopkg.in/crare/pkg/net"
+	"gopkg.in/crare.v1/pkg/net"
 )
 
 var (
