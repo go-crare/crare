@@ -32,11 +32,11 @@ Read the documentation [here](https://crare.pkg.one), it's still a work in progr
 # Contributing
 
 1. Fork it
-2. Clone master: `git clone -b github.com/go-crare/crare`
-3. Create your feature branch: `git checkout -b master`
+2. Clone main: `git clone -b github.com/go-crare/crare`
+3. Create your feature branch: `git checkout -b main`
 4. Make changes and add them: `git add .`
 5. Commit: `git commit -m "add some feature"`
-6. Push: `git push origin master`
+6. Push: `git push origin main`
 7. Pull request
 
 # License
