@@ -22,7 +22,7 @@ func (lt *Layout) Middleware(defaultLocale string, localeFunc ...LocaleFunc) cra
 		f = localeFunc[0]
 	}
 
-	return func(c *crare.Context) error {
+	return func(c crare.Context) error {
 		locale := defaultLocale
 		if f != nil {
 			if l := f(c.Sender()); l != "" {

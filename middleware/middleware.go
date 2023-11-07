@@ -8,7 +8,7 @@ import (
 
 // AutoRespond returns a middleware that automatically responds
 // to every callback.
-func AutoRespond(c *crare.Context) error {
+func AutoRespond(c crare.Context) error {
 	if c.Callback() != nil {
 		defer c.Respond()
 	}
@@ -17,7 +17,7 @@ func AutoRespond(c *crare.Context) error {
 
 // IgnoreVia returns a middleware that ignores all the
 // "sent via" messages.
-func IgnoreVia(c *crare.Context) error {
+func IgnoreVia(c crare.Context) error {
 	if msg := c.Message(); msg != nil && msg.Via != nil {
 		return nil
 	}
@@ -27,7 +27,7 @@ func IgnoreVia(c *crare.Context) error {
 // Recover returns a middleware that recovers a panic happened in
 // the handler.
 func Recover(onError ...func(error)) crare.HandlerFunc {
-	return func(c *crare.Context) error {
+	return func(c crare.Context) error {
 		var f func(error)
 		if len(onError) > 0 {
 			f = onError[0]

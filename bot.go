@@ -170,7 +170,7 @@ func (b *Bot) Json() json.Json {
 	return b.json
 }
 
-func (b *Bot) OnError(err error, c *Context) {
+func (b *Bot) OnError(err error, c Context) {
 	b.logger.OnError(err, c)
 }
 
@@ -284,7 +284,7 @@ func (b *Bot) NewMarkup() *ReplyMarkup {
 
 // NewContext returns a new context object,
 // field by the passed update.
-func (b *Bot) NewContext(u Update) *Context {
+func (b *Bot) NewContext(u Update) *nativeContext {
 	ctx := b.AcquireContext()
 	ctx.b = b
 	ctx.u = u
@@ -292,12 +292,12 @@ func (b *Bot) NewContext(u Update) *Context {
 }
 
 // Get a Context from the pool.
-func (b *Bot) AcquireContext() *Context {
+func (b *Bot) AcquireContext() *nativeContext {
 	n := ctxPool.Get()
 	if n == nil {
-		return &Context{}
+		return &nativeContext{}
 	}
-	return n.(*Context)
+	return n.(*nativeContext)
 }
 
 // Use this method to change the bot's name. Returns True on success.

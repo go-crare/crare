@@ -22,7 +22,7 @@ type (
 	Layout struct {
 		pref  *crare.Settings
 		mu    sync.RWMutex // protects ctxs
-		ctxs  map[*crare.Context]string
+		ctxs  map[crare.Context]string
 		funcs template.FuncMap
 
 		commands map[string]string
@@ -78,7 +78,7 @@ func New(path string, funcs ...template.FuncMap) (*Layout, error) {
 	}
 
 	lt := Layout{
-		ctxs:  make(map[*crare.Context]string),
+		ctxs:  make(map[crare.Context]string),
 		funcs: make(template.FuncMap),
 	}
 
@@ -156,7 +156,7 @@ func (lt *Layout) Locales() []string {
 }
 
 // Locale returns the context locale.
-func (lt *Layout) Locale(c *crare.Context) (string, bool) {
+func (lt *Layout) Locale(c crare.Context) (string, bool) {
 	lt.mu.RLock()
 	defer lt.mu.RUnlock()
 	locale, ok := lt.ctxs[c]
@@ -164,7 +164,7 @@ func (lt *Layout) Locale(c *crare.Context) (string, bool) {
 }
 
 // SetLocale allows you to change a locale for the passed context.
-func (lt *Layout) SetLocale(c *crare.Context, locale string) {
+func (lt *Layout) SetLocale(c crare.Context, locale string) {
 	lt.mu.Lock()
 	lt.ctxs[c] = locale
 	lt.mu.Unlock()
@@ -241,7 +241,7 @@ func (lt *Layout) CommandsLocale(locale string, args ...any) (cmds []crare.Comma
 //	func onStart(c crare.Context) error {
 //		return c.Send(lt.Text(c, "start", c.Sender()))
 //	}
-func (lt *Layout) Text(c *crare.Context, k string, args ...any) string {
+func (lt *Layout) Text(c crare.Context, k string, args ...any) string {
 	locale, ok := lt.Locale(c)
 	if !ok {
 		return ""
@@ -310,7 +310,7 @@ func (lt *Layout) Callback(k string) crare.CallbackEndpoint {
 //	m := b.NewMarkup()
 //	m.Inline(m.Row(btns...))
 //	// Your generated markup is ready.
-func (lt *Layout) Button(c *crare.Context, k string, args ...any) *crare.Btn {
+func (lt *Layout) Button(c crare.Context, k string, args ...any) *crare.Btn {
 	locale, ok := lt.Locale(c)
 	if !ok {
 		return nil
@@ -375,7 +375,7 @@ func (lt *Layout) ButtonLocale(locale, k string, args ...any) *crare.Btn {
 //			lt.Markup(c, "menu"),
 //		)
 //	}
-func (lt *Layout) Markup(c *crare.Context, k string, args ...any) *crare.ReplyMarkup {
+func (lt *Layout) Markup(c crare.Context, k string, args ...any) *crare.ReplyMarkup {
 	locale, ok := lt.Locale(c)
 	if !ok {
 		return nil
@@ -446,7 +446,7 @@ func (lt *Layout) MarkupLocale(locale, k string, args ...any) *crare.ReplyMarkup
 //			CacheTime: 100,
 //		})
 //	}
-func (lt *Layout) Result(c *crare.Context, k string, args ...any) crare.Result {
+func (lt *Layout) Result(c crare.Context, k string, args ...any) crare.Result {
 	locale, ok := lt.Locale(c)
 	if !ok {
 		return nil
