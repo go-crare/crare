@@ -264,7 +264,7 @@ func (b *Bot) ProcessUpdate(u Update) bool {
 	return false
 }
 
-func (b *Bot) handle(end string, c *Context) bool {
+func (b *Bot) handle(end string, c Context) bool {
 	if handler, ok := b.handlers[end]; ok {
 		b.runHandler(handler, c)
 		return true
@@ -272,7 +272,7 @@ func (b *Bot) handle(end string, c *Context) bool {
 	return false
 }
 
-func (b *Bot) handleMedia(c *Context) bool {
+func (b *Bot) handleMedia(c Context) bool {
 	var (
 		m     = c.Message()
 		fired bool
@@ -306,7 +306,7 @@ func (b *Bot) handleMedia(c *Context) bool {
 	return fired
 }
 
-func (b *Bot) runHandler(h *Handle, c *Context) {
+func (b *Bot) runHandler(h *Handle, c Context) {
 	f := func() {
 		if err := h.doMiddleware(c); err != nil {
 			b.OnError(err, c)
@@ -314,7 +314,7 @@ func (b *Bot) runHandler(h *Handle, c *Context) {
 		if err := h.do(c); err != nil {
 			b.OnError(err, c)
 		}
-		c.releaseContext()
+		c.ReleaseContext()
 	}
 	if b.synchronous {
 		f()

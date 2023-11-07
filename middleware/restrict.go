@@ -14,7 +14,7 @@ type RestrictConfig struct {
 // If the chat is found in the Chats field, In function will be called,
 // otherwise Out function will be called.
 func Restrict(v RestrictConfig) crare.HandlerFunc {
-	return func(c *crare.Context) error {
+	return func(c crare.Context) error {
 		for _, chat := range v.Chats {
 			if chat == c.Sender().ID {
 				return c.Next()
@@ -27,7 +27,7 @@ func Restrict(v RestrictConfig) crare.HandlerFunc {
 // Blacklist returns a middleware that skips the update for users
 // specified in the chats field.
 func Blacklist(chats ...int64) crare.HandlerFunc {
-	return func(ctx *crare.Context) error {
+	return func(ctx crare.Context) error {
 		return Restrict(RestrictConfig{
 			Chats: chats,
 		})(ctx)
@@ -37,7 +37,7 @@ func Blacklist(chats ...int64) crare.HandlerFunc {
 // Whitelist returns a middleware that skips the update for users
 // NOT specified in the chats field.
 func Whitelist(chats ...int64) crare.HandlerFunc {
-	return func(ctx *crare.Context) error {
+	return func(ctx crare.Context) error {
 		return Restrict(RestrictConfig{
 			Chats: chats,
 		})(ctx)

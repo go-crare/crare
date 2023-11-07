@@ -9,12 +9,12 @@ type Handle struct {
 
 // HandlerFunc represents a handler function, which is
 // used to handle actual endpoints.
-type HandlerFunc func(*Context) error
+type HandlerFunc func(Context) error
 
 // Execute handler
-func (h *Handle) do(c *Context) error {
+func (h *Handle) do(c Context) error {
 	if len(h.Middleware) > 0 {
-		if !c.next {
+		if !c.NextStatus() {
 			return nil
 		}
 	}
@@ -22,13 +22,13 @@ func (h *Handle) do(c *Context) error {
 }
 
 // Execution middleware
-func (h *Handle) doMiddleware(c *Context) error {
+func (h *Handle) doMiddleware(c Context) error {
 	if len(h.Middleware) > 0 {
 		for i, r := range h.Middleware {
-			if !c.next && i != 0 {
+			if !c.NextStatus() && i != 0 {
 				return nil
 			}
-			c.next = false
+			c.SetNextStatus(false)
 			if err := r(c); err != nil {
 				return err
 			}
