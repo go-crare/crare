@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - v1
+      - alpha-mtproto
 jobs:
   lint:
     runs-on: ubuntu-latest
