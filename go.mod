@@ -1,6 +1,6 @@
 module gopkg.in/crare.v1
 
-go 1.21.3
+go 1.21.4
 
 require (
 	github.com/3JoB/atreugo-realip v0.0.2
