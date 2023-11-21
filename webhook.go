@@ -204,11 +204,11 @@ func (h *Webhook) waitForStop(stop chan struct{}) {
 }
 
 func (h *Webhook) IPValidation(rc *atreugo.RequestCtx) error {
-	if h.Verify.Verify(realip.FromRequest(rc)) {
-		return rc.Next()
+	if !h.Verify.Verify(realip.FromRequest(rc)) {
+		rc.SetConnectionClose()
+		return nil
 	}
-	rc.SetConnectionClose()
-	return nil
+	return rc.Next()
 }
 
 func (h *Webhook) TokenValidation(rc *atreugo.RequestCtx) error {
@@ -224,7 +224,7 @@ func (h *Webhook) TokenValidation(rc *atreugo.RequestCtx) error {
 func (h *Webhook) Serve(rc *atreugo.RequestCtx) error {
 	var update Update
 	if err := h.bot.json.Unmarshal(rc.Request.Body(), &update); err != nil {
-		err = fmt.Errorf("cannot decode update: %v", err)
+		err = fmt.Errorf("cannot decode update: %v", err.Error())
 		h.bot.debug(err)
 		return err
 	}
