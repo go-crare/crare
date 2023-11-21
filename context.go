@@ -281,7 +281,6 @@ func (c *nativeContext) Topic() *Topic {
 	return nil
 }
 
-
 // Sender returns the current recipient, depending on the context type.
 // Returns nil if user is not presented.
 func (c *nativeContext) Sender() *User {

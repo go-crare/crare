@@ -50,7 +50,7 @@ var ErrMap map[uint32]*Error = map[uint32]*Error{
 	hash32(ErrForwardMessage):         ErrForwardMessage,
 	hash32(ErrUserAlreadyParticipant): ErrUserAlreadyParticipant,
 	hash32(ErrChannelsTooMuch):        ErrChannelsTooMuch,
-	hash32(ErrChannelsTooMuch):    ErrChannelsTooMuch,
+	hash32(ErrChannelsTooMuch):        ErrChannelsTooMuch,
 	hash32(ErrHideRequesterMissing):   ErrHideRequesterMissing,
 
 	hash32(ErrBlockedByUser):        ErrBlockedByUser,
