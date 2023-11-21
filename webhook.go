@@ -207,7 +207,7 @@ func (h *Webhook) IPValidation(rc *atreugo.RequestCtx) error {
 	if h.Verify.Verify(realip.FromRequest(rc)) {
 		return rc.Next()
 	}
-	_ = rc.Conn().Close()
+	rc.SetConnectionClose()
 	return nil
 }
 
