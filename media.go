@@ -296,7 +296,7 @@ type Sticker struct {
 	NeedsRepainting  bool           `json:"needs_repainting"`
 	Emoji            string         `json:"emoji"`
 	SetName          string         `json:"set_name"`
-	CustomEmoji      string         `json:"custom_emoji_id,omitempty"`
+	CustomEmoji      string         `json:"custom_emoji_id"`
 	Thumbnail        *Photo         `json:"thumbnail"`
 	MaskPosition     *MaskPosition  `json:"mask_position"`
 	PremiumAnimation *File          `json:"premium_animation"`

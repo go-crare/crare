@@ -11,7 +11,7 @@ import (
 type Message struct {
 	ID int `json:"message_id"`
 
-	// Unique identifier of a message thread to which the message belongs; for supergroups only
+	// (Optional) Unique identifier of a message thread to which the message belongs; for supergroups only
 	ThreadID int `json:"message_thread_id"`
 
 	// For message sent to channels, Sender will be nil
@@ -230,6 +230,12 @@ type Message struct {
 	// Message is a service message about a successful payment.
 	Payment *Payment `json:"successful_payment"`
 
+	// For a service message, a user was shared with the bot.
+	UserShared *RecipientShared `json:"user_shared,omitempty"`
+
+	// For a service message, a chat was shared with the bot.
+	ChatShared *RecipientShared `json:"chat_shared,omitempty"`
+
 	// The domain name of the website on which the user has logged in.
 	ConnectedWebsite string `json:"connected_website,omitempty"`
 
@@ -262,7 +268,7 @@ type Message struct {
 	TopicCreated *Topic `json:"forum_topic_created,omitempty"`
 
 	// Service message: forum topic closed
-	TopicClosed *TopicClosed `json:"forum_topic_closed,omitempty"`
+	TopicClosed *struct{} `json:"forum_topic_closed,omitempty"`
 
 	// Service message: forum topic reopened
 	TopicReopened *Topic `json:"forum_topic_reopened,omitempty"`
@@ -271,10 +277,10 @@ type Message struct {
 	TopicEdited *Topic `json:"forum_topic_edited,omitempty"`
 
 	// Service message: general forum topic hidden
-	GeneralTopicHidden *GeneralTopicHidden `json:"general_topic_hidden,omitempty"`
+	GeneralTopicHidden *struct{} `json:"general_topic_hidden,omitempty"`
 
 	// Service message: general forum topic unhidden
-	GeneralTopicUnhidden *GeneralTopicUnhidden `json:"general_topic_unhidden,omitempty"`
+	GeneralTopicUnhidden *struct{} `json:"general_topic_unhidden,omitempty"`
 
 	// Service message: the user allowed the bot added to the attachment menu to write messages
 	WriteAccessAllowed *WriteAccessAllowed `json:"write_access_allowed,omitempty"`

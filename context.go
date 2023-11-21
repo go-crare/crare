@@ -43,7 +43,7 @@ type Context interface {
 	// ChatMember returns chat member changes.
 	ChatMember() *ChatMemberUpdate
 
-	// ChatJoinRequest returns cha
+	// ChatJoinRequest returns the chat join request.
 	ChatJoinRequest() *ChatJoinRequest
 
 	// Migration returns both migration from and to chat IDs.
@@ -264,6 +264,23 @@ func (c *nativeContext) PollAnswer() *PollAnswer {
 func (c *nativeContext) Migration() (int64, int64) {
 	return c.u.Message.MigrateFrom, c.u.Message.MigrateTo
 }
+
+func (c *nativeContext) Topic() *Topic {
+	m := c.u.Message
+	if m == nil {
+		return nil
+	}
+	switch {
+	case m.TopicCreated != nil:
+		return m.TopicCreated
+	case m.TopicReopened != nil:
+		return m.TopicReopened
+	case m.TopicEdited != nil:
+		return m.TopicEdited
+	}
+	return nil
+}
+
 
 // Sender returns the current recipient, depending on the context type.
 // Returns nil if user is not presented.

@@ -88,7 +88,7 @@ func (b *Bot) ProcessUpdate(u Update) bool {
 		if m.Payment != nil {
 			return b.handle(OnPayment, c)
 		}
-		if m.TopicClosed != nil {
+		if m.TopicCreated != nil {
 			return b.handle(OnTopicCreated, c)
 		}
 		if m.TopicReopened != nil {
@@ -108,6 +108,13 @@ func (b *Bot) ProcessUpdate(u Update) bool {
 		}
 		if m.WriteAccessAllowed != nil {
 			return b.handle(OnWriteAccessAllowed, c)
+		}
+		if m.UserShared != nil {
+			return b.handle(OnUserShared, c)
+		}
+
+		if m.ChatShared != nil {
+			return b.handle(OnChatShared, c)
 		}
 
 		wasAdded := (m.UserJoined != nil && m.UserJoined.ID == b.Me.ID) ||
@@ -178,7 +185,7 @@ func (b *Bot) ProcessUpdate(u Update) bool {
 		}
 
 		if m.WebAppData != nil {
-			b.handle(OnWebApp, c)
+			return b.handle(OnWebApp, c)
 		}
 
 		if m.ProximityAlert != nil {

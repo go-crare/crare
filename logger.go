@@ -57,7 +57,7 @@ func (z *LoggerZerolog) Panicf(format string, a ...any) {
 func (z *LoggerZerolog) OnError(err error, c Context) {
 	var message string
 	if c != nil {
-		message = litefmt.PSprint(unsafeConvert.Itoa(c.Update().ID), " ", err.Error())
+		message = litefmt.Sprint(unsafeConvert.Itoa(c.Update().ID), " ", err.Error())
 	} else {
 		message = err.Error()
 	}

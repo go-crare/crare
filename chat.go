@@ -13,11 +13,12 @@ type User struct {
 	LastName            string   `json:"last_name"`
 	Username            string   `json:"username"`
 	LanguageCode        string   `json:"language_code"`
-	IsBot               bool     `json:"is_bot"`
-	IsPremium           bool     `json:"is_premium"`
-	AddedToMenu         bool     `json:"added_to_attachment_menu"`
 	Usernames           []string `json:"active_usernames"`
 	CustomEmojiStatusID string   `json:"emoji_status_custom_emoji_id"`
+
+	IsBot       bool `json:"is_bot"`
+	IsPremium   bool `json:"is_premium"`
+	AddedToMenu bool `json:"added_to_attachment_menu"`
 
 	// Returns only in getMe
 	CanJoinGroups bool `json:"can_join_groups"`
@@ -113,6 +114,7 @@ type ChatMember struct {
 	Role      MemberStatus `json:"status"`
 	Title     string       `json:"custom_title"`
 	Anonymous bool         `json:"is_anonymous"`
+	Member    bool         `json:"is_member,omitempty"`
 
 	// Date when restrictions will be lifted for the user, unix time.
 	//
@@ -442,6 +444,9 @@ func (b *Bot) SetGroupPermissions(chat *Chat, perms Rights) error {
 	params := map[string]any{
 		"chat_id":     chat.Recipient(),
 		"permissions": perms,
+	}
+	if perms.Independent {
+		params["use_independent_chat_permissions"] = true
 	}
 
 	r, err := b.Raw("setChatPermissions", params)

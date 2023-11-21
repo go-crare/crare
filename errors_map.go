@@ -2,6 +2,7 @@ package crare
 
 var ErrMap map[uint32]*Error = map[uint32]*Error{
 	hash32(ErrTooLarge):     ErrTooLarge,
+	hash32(ErrBadUserID):    ErrBadUserID,
 	hash32(ErrUnauthorized): ErrUnauthorized,
 	hash32(ErrNotFound):     ErrNotFound,
 	hash32(ErrInternal):     ErrInternal,
@@ -47,6 +48,10 @@ var ErrMap map[uint32]*Error = map[uint32]*Error{
 	hash32(ErrWrongTypeOfContent):     ErrWrongTypeOfContent,
 	hash32(ErrWrongURL):               ErrWrongURL,
 	hash32(ErrForwardMessage):         ErrForwardMessage,
+	hash32(ErrUserAlreadyParticipant): ErrUserAlreadyParticipant,
+	hash32(ErrChannelsTooMuch):        ErrChannelsTooMuch,
+	hash32(ErrChannelsTooMuch):    ErrChannelsTooMuch,
+	hash32(ErrHideRequesterMissing):   ErrHideRequesterMissing,
 
 	hash32(ErrBlockedByUser):        ErrBlockedByUser,
 	hash32(ErrKickedFromGroup):      ErrKickedFromGroup,

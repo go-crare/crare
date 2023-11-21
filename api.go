@@ -59,10 +59,10 @@ func (b *Bot) Raw(method string, payload ...any) (*bytes.Buffer, error) {
 
 func (b *Bot) buildUrl(method string) string {
 	if b.URLCache != "" {
-		return litefmt.PSprint(b.URLCache, method)
+		return litefmt.Sprint(b.URLCache, method)
 	}
-	b.URLCache = litefmt.PSprint(b.URL, "/bot", b.Token, "/")
-	return litefmt.PSprint(b.URLCache, method)
+	b.URLCache = litefmt.Sprint(b.URL, "/bot", b.Token, "/")
+	return litefmt.Sprint(b.URLCache, method)
 }
 
 func (b *Bot) sendFiles(method string, files map[string]File, params map[string]any) (*bytes.Buffer, error) {
@@ -180,7 +180,7 @@ func (b *Bot) sendText(to Recipient, text string, opt *SendOptions) (*Message, e
 
 func (b *Bot) sendMedia(media Media, params map[string]any, files map[string]File) (*Message, error) {
 	kind := media.MediaType()
-	what := litefmt.PSprint("send", cases.Title(language.English).String(kind))
+	what := litefmt.Sprint("send", cases.Title(language.English).String(kind))
 
 	if kind == "videoNote" {
 		kind = "video_note"

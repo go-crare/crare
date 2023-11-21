@@ -417,6 +417,7 @@ func (b *Bot) Send(to Recipient, what any, opts ...any) (*Message, error) {
 }
 
 // SendAlbum sends multiple instances of media as a single message.
+// To include the caption, make sure the first Inputtable of an album has it.
 // From all existing options, it only supports crare.Silent.
 func (b *Bot) SendAlbum(to Recipient, a Album, opts ...any) ([]Message, error) {
 	if to == nil {
@@ -440,7 +441,7 @@ func (b *Bot) SendAlbum(to Recipient, a Album, opts ...any) ([]Message, error) {
 		case file.FileURL != "":
 			repr = file.FileURL
 		case file.OnDisk() || file.FileReader != nil:
-			repr = litefmt.PSprintP("attach://", unsafeConvert.IntToString(i))
+			repr = litefmt.SprintP("attach://", unsafeConvert.IntToString(i))
 			files[unsafeConvert.IntToString(i)] = *file
 		default:
 			return nil, fmt.Errorf("crare: album entry #%d does not exist", i)
@@ -461,7 +462,7 @@ func (b *Bot) SendAlbum(to Recipient, a Album, opts ...any) ([]Message, error) {
 
 	params := map[string]any{
 		"chat_id": to.Recipient(),
-		"media":   litefmt.PSprintP("[", strings.Join(media, ","), "]"),
+		"media":   litefmt.SprintP("[", strings.Join(media, ","), "]"),
 	}
 	b.embedSendOptions(params, sendOpts)
 
@@ -724,7 +725,7 @@ func (b *Bot) EditMedia(msg Editable, media Inputtable, opts ...any) (*Message, 
 			thumbName = "thumbnail2"
 		}
 
-		repr = litefmt.PSprintP("attach://", s)
+		repr = litefmt.SprintP("attach://", s)
 		files[s] = *file
 	default:
 		return nil, errors.New("crare: cannot edit media, it does not exist")
@@ -757,7 +758,7 @@ func (b *Bot) EditMedia(msg Editable, media Inputtable, opts ...any) (*Message, 
 	}
 
 	if thumb != nil {
-		im.Thumbnail = litefmt.PSprintP("attach://%v", thumbName)
+		im.Thumbnail = litefmt.SprintP("attach://%v", thumbName)
 		files[thumbName] = *thumb.MediaFile()
 	}
 
@@ -915,7 +916,8 @@ func (b *Bot) Answer(query *Query, resp *QueryResponse) error {
 		result.Process(b)
 	}
 
-	_, err := b.Raw("answerInlineQuery", resp)
+	data, err := b.Raw("answerInlineQuery", resp)
+	ReleaseBuffer(data)
 	return err
 }
 

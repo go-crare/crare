@@ -9,20 +9,20 @@ type Rights struct {
 	// Anonymous is true, if the user's presence in the chat is hidden.
 	Anonymous bool `json:"is_anonymous"`
 
-	CanBeEdited         bool `json:"can_be_edited"`
-	CanChangeInfo       bool `json:"can_change_info"`
-	CanPostMessages     bool `json:"can_post_messages"`
-	CanPostStories      bool `json:"can_post_stories"`
-	CanEditMessages     bool `json:"can_edit_messages"`
-	CanEditStories      bool `json:"can_edit_stories"`
-	CanDeleteMessages   bool `json:"can_delete_messages"`
-	CanDeleteStories    bool `json:"can_delete_stories"`
-	CanPinMessages      bool `json:"can_pin_messages"`
-	CanInviteUsers      bool `json:"can_invite_users"`
-	CanRestrictMembers  bool `json:"can_restrict_members"`
-	CanPromoteMembers   bool `json:"can_promote_members"`
-	CanSendMessages     bool `json:"can_send_messages"`
-	CanSendMedia        bool `json:"can_send_media_messages"`
+	CanBeEdited        bool `json:"can_be_edited"`
+	CanChangeInfo      bool `json:"can_change_info"`
+	CanPostMessages    bool `json:"can_post_messages"`
+	CanPostStories     bool `json:"can_post_stories"`
+	CanEditMessages    bool `json:"can_edit_messages"`
+	CanEditStories     bool `json:"can_edit_stories"`
+	CanDeleteMessages  bool `json:"can_delete_messages"`
+	CanDeleteStories   bool `json:"can_delete_stories"`
+	CanPinMessages     bool `json:"can_pin_messages"`
+	CanInviteUsers     bool `json:"can_invite_users"`
+	CanRestrictMembers bool `json:"can_restrict_members"`
+	CanPromoteMembers  bool `json:"can_promote_members"`
+	CanSendMessages    bool `json:"can_send_messages"`
+
 	CanSendAudios       bool `json:"can_send_audios"`
 	CanSendDocuments    bool `json:"can_send_documents"`
 	CanSendPhotos       bool `json:"can_send_photos"`
@@ -35,6 +35,15 @@ type Rights struct {
 	CanManageVideoChats bool `json:"can_manage_video_chats"`
 	CanManageChat       bool `json:"can_manage_chat"`
 	CanManageTopics     bool `json:"can_manage_topics"`
+
+	// Independent defines whether the chat permissions are set independently.
+	// If not, the can_send_other_messages and can_add_web_page_previews permissions
+	// will imply the can_send_messages, can_send_audios, can_send_documents, can_send_photos,
+	// can_send_videos, can_send_video_notes, and can_send_voice_notes permissions;
+	// the can_send_polls permission will imply the can_send_messages permission.
+	//
+	// Works for Restrict and SetGroupPermissions methods only.
+	Independent bool `json:"-"`
 }
 
 // NoRights is the default Rights{}.
@@ -60,13 +69,19 @@ func NoRestrictions() Rights {
 		CanPinMessages:      false,
 		CanPromoteMembers:   false,
 		CanSendMessages:     true,
-		CanSendMedia:        true,
 		CanSendPolls:        true,
 		CanSendOther:        true,
 		CanAddPreviews:      true,
 		CanManageVideoChats: false,
 		CanManageChat:       false,
 		CanManageTopics:     false,
+
+		CanSendAudios:     true,
+		CanSendDocuments:  true,
+		CanSendPhotos:     true,
+		CanSendVideos:     true,
+		CanSendVideoNotes: true,
+		CanSendVoiceNotes: true,
 	}
 }
 
@@ -86,13 +101,19 @@ func AdminRights() Rights {
 		CanPinMessages:      true,
 		CanPromoteMembers:   true,
 		CanSendMessages:     true,
-		CanSendMedia:        true,
 		CanSendPolls:        true,
 		CanSendOther:        true,
 		CanAddPreviews:      true,
 		CanManageVideoChats: true,
 		CanManageChat:       true,
 		CanManageTopics:     true,
+
+		CanSendAudios:     true,
+		CanSendDocuments:  true,
+		CanSendPhotos:     true,
+		CanSendVideos:     true,
+		CanSendVideoNotes: true,
+		CanSendVoiceNotes: true,
 	}
 }
 
@@ -143,11 +164,14 @@ func (b *Bot) Unban(chat *Chat, user *User, forBanned ...bool) error {
 //   - can add web page previews
 func (b *Bot) Restrict(chat *Chat, member *ChatMember) error {
 	params := map[string]any{
-		"chat_id":    chat.Recipient(),
-		"user_id":    member.User.Recipient(),
-		"until_date": member.RestrictedUntil,
+		"chat_id":     chat.Recipient(),
+		"user_id":     member.User.Recipient(),
+		"until_date":  member.RestrictedUntil,
+		"permissions": member.Rights,
 	}
-	embedRights(params, &member.Rights)
+	if member.Rights.Independent {
+		params["use_independent_chat_permissions"] = true
+	}
 
 	r, err := b.Raw("restrictChatMember", params)
 	ReleaseBuffer(r)
