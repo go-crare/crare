@@ -213,7 +213,8 @@ func (h *Webhook) IPValidation(rc *atreugo.RequestCtx) error {
 
 func (h *Webhook) TokenValidation(rc *atreugo.RequestCtx) error {
 	if h.SecretToken != "" && unsafeConvert.StringPointer(rc.Request.Header.Peek("X-Telegram-Bot-Api-Secret-Token")) != h.SecretToken {
-		return rc.TextResponse("invalid secret token in request", 401)
+		rc.SetConnectionClose()
+		return nil
 	}
 	return rc.Next()
 }
