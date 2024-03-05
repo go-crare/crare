@@ -13,7 +13,7 @@ require (
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd
 	github.com/jamiealquiza/fnv v1.0.0
 	github.com/rs/zerolog v1.32.0
-	github.com/savsgio/atreugo/v11 v11.12.0
+	github.com/savsgio/atreugo/v11 v11.13.0
 	github.com/spf13/viper v1.18.1
 	github.com/stretchr/testify v1.9.0
 	github.com/sugawarayuuta/sonnet v0.0.0-20231004000330-239c7b6e4ce8
@@ -27,7 +27,7 @@ require (
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/fasthttp/router v1.4.22 // indirect
+	github.com/fasthttp/router v1.5.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
