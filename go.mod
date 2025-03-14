@@ -1,7 +1,7 @@
 module gopkg.in/crare.v1
 
 go 1.21.4
-toolchain go1.23.7
+toolchain go1.24.1
 
 require (
 	github.com/3JoB/atreugo-realip v0.0.3
@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/sugawarayuuta/sonnet v0.0.0-20231004000330-239c7b6e4ce8
 	github.com/valyala/fasthttp v1.59.0
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 )
 
 require (
