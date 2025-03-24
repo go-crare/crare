@@ -13,7 +13,7 @@ require (
 	github.com/goccy/go-yaml v1.16.0
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd
 	github.com/jamiealquiza/fnv v1.0.0
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/savsgio/atreugo/v11 v11.13.2
 	github.com/spf13/viper v1.20.0
 	github.com/stretchr/testify v1.10.0
