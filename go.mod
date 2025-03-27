@@ -15,7 +15,7 @@ require (
 	github.com/jamiealquiza/fnv v1.0.0
 	github.com/rs/zerolog v1.34.0
 	github.com/savsgio/atreugo/v11 v11.13.2
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/sugawarayuuta/sonnet v0.0.0-20231004000330-239c7b6e4ce8
 	github.com/valyala/fasthttp v1.59.0
